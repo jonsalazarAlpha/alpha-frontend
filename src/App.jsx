@@ -115,13 +115,13 @@ function App() {
       {pagina === 'inicio' && (
         <div>
           <div style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', padding: '80px 40px', textAlign: 'center', color: 'white' }}>
-            <h2 style={{ fontSize: 42, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.2 }}>Alquila el vehiculo perfecto<br/>en El Salvador</h2>
+            <h2 style={{ fontSize: 42, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.2 }}>Alquila el vehículo perfecto<br/>en El Salvador</h2>
             <p style={{ fontSize: 18, opacity: 0.8, margin: '0 0 40px' }}>Miles de opciones · Precios transparentes · Sin sorpresas</p>
 
             {/* BUSCADOR */}
             <div style={{ background: 'white', borderRadius: 16, padding: '24px 28px', maxWidth: 780, margin: '0 auto', display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 160 }}>
-                <label style={{ display: 'block', fontSize: 12, color: '#666', fontWeight: 600, marginBottom: 6, textAlign: 'left' }}>TIPO DE VEHICULO</label>
+                <label style={{ display: 'block', fontSize: 12, color: '#666', fontWeight: 600, marginBottom: 6, textAlign: 'left' }}>TIPO DE VEHÍCULO</label>
                 <select onChange={e => setBusqueda({...busqueda, tipo: e.target.value})} style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #ddd', borderRadius: 8, fontSize: 14, color: '#333' }}>
                   <option value="">Todos los tipos</option>
                   <option value="Sedan">Sedan</option>
@@ -144,9 +144,9 @@ function App() {
 
           {/* CATEGORIAS */}
           <div style={{ padding: '48px 40px', maxWidth: 1100, margin: '0 auto' }}>
-            <h3 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px', color: '#1a1a2e' }}>Explora por categoria</h3>
+            <h3 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px', color: '#1a1a2e' }}>Explora por categoría</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
-              {[{tipo:'Sedan',emoji:'🚗',desc:'Comodo y economico'},{tipo:'Pick-up',emoji:'🛻',desc:'Para trabajo y aventura'},{tipo:'Microbus',emoji:'🚌',desc:'Grupos y familias'},{tipo:'Camioneta',emoji:'🚙',desc:'Espacioso y versatil'}].map(c => (
+              {[{tipo:'Sedan',emoji:'🚗',desc:'Cómodo y económico'},{tipo:'Pick-up',emoji:'🛻',desc:'Para trabajo y aventura'},{tipo:'Microbus',emoji:'🚌',desc:'Para grupos y familias'},{tipo:'Camioneta',emoji:'🚙',desc:'Espaciosa y versátil'}].map(c => (
                 <div key={c.tipo} onClick={() => { setBusqueda({...busqueda, tipo: c.tipo}); buscar(); }} style={{ background: 'white', borderRadius: 12, padding: '24px 20px', textAlign: 'center', cursor: 'pointer', border: '1.5px solid #eee', transition: 'all 0.2s' }}
                   onMouseOver={e => e.currentTarget.style.borderColor='#e74c3c'}
                   onMouseOut={e => e.currentTarget.style.borderColor='#eee'}>
@@ -160,7 +160,7 @@ function App() {
 
           {/* VEHICULOS DESTACADOS */}
           <div style={{ padding: '0 40px 48px', maxWidth: 1100, margin: '0 auto' }}>
-            <h3 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px', color: '#1a1a2e' }}>Vehiculos disponibles</h3>
+            <h3 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px', color: '#1a1a2e' }}>Vehículos disponibles</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
               {vehiculos.map(v => (
                 <div key={v.id} style={{ background: 'white', borderRadius: 12, overflow: 'hidden', border: '1px solid #eee', transition: 'box-shadow 0.2s' }}
@@ -175,7 +175,7 @@ function App() {
                       <span style={tag}>Cat. {v.categoria}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div><span style={{ fontSize: 22, fontWeight: 800, color: '#e74c3c' }}>${v.precio_por_dia}</span><span style={{ fontSize: 13, color: '#888' }}>/dia</span></div>
+                      <div><span style={{ fontSize: 22, fontWeight: 800, color: '#e74c3c' }}>${v.precio_por_día}</span><span style={{ fontSize: 13, color: '#888' }}>/dia</span></div>
                       <button onClick={() => { if(!token){ setPagina('login'); return; } setForm({ vehiculo_id: v.id, precio: v.precio_por_dia }); setPagina('reservar') }} style={{ background: '#e74c3c', color: 'white', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>Reservar</button>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ function App() {
           {/* FOOTER */}
           <footer style={{ background: '#1a1a2e', color: 'white', padding: '40px', textAlign: 'center' }}>
             <h3 style={{ color: '#e74c3c', margin: '0 0 8px', fontSize: 24 }}>ALPHA</h3>
-            <p style={{ opacity: 0.6, margin: '0 0 16px', fontSize: 14 }}>Plataforma de alquiler de vehiculos en El Salvador</p>
+            <p style={{ opacity: 0.6, margin: '0 0 16px', fontSize: 14 }}>Plataforma de alquiler de vehículos en El Salvador</p>
             <p style={{ opacity: 0.4, fontSize: 12 }}>© 2026 Alpha. Todos los derechos reservados.</p>
           </footer>
         </div>
