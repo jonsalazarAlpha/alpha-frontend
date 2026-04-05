@@ -29,8 +29,8 @@ const INFO_DEPTOS = {
 }
 
 const CATEGORIAS = [
-  { tipo: 'Sedan', label: 'Sedán', img: 'https://images.unsplash.com/photo-1592805723127-004b174a1798?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', desc: 'Cómodo y económico' },
-  { tipo: 'Pickup', label: 'Pick-up', img: 'https://images.unsplash.com/photo-1588814928518-238716568ef4?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', desc: 'Para trabajo y aventura' },
+  { tipo: 'Sedan', label: 'Sedán', img: 'https://images.unsplash.com/photo-1592805723127-004b174a1798?q=80&w=870&auto=format&fit=crop', desc: 'Cómodo y económico' },
+  { tipo: 'Pickup', label: 'Pick-up', img: 'https://images.unsplash.com/photo-1588814928518-238716568ef4?q=80&w=870&auto=format&fit=crop', desc: 'Para trabajo y aventura' },
   { tipo: 'Microbus', label: 'Microbús', img: 'https://images.unsplash.com/photo-1775053392841-7fa6dabdb760?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', desc: 'Para grupos y familias' },
   { tipo: 'Camioneta', label: 'Camioneta', img: 'https://images.unsplash.com/photo-1575090536203-2a6193126514?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', desc: 'Espaciosa y versátil' },
 ]
@@ -56,7 +56,10 @@ function calcularPrecios(precioBase) {
 }
 
 function App() {
-  const [pagina, setPagina] = useState('inicio')
+  const [pagina, setPagina] = useState(() => {
+    const hash = window.location.hash.replace('#', '')
+    return hash || 'inicio'
+  })
   const [vehiculos, setVehiculos] = useState([])
   const [vehiculosFiltrados, setVehiculosFiltrados] = useState([])
   const [token, setToken] = useState(localStorage.getItem('token') || '')
@@ -72,8 +75,30 @@ function App() {
   const [fotosPropietario, setFotosPropietario] = useState({})
   const [zonaVehiculo, setZonaVehiculo] = useState('')
 
-  useEffect(() => { cargarVehiculos() }, [])
-  useEffect(() => { if (pagina === 'panel') cargarReservas() }, [pagina])
+  const ir = (pag) => {
+    window.history.pushState({ pagina: pag }, '', `#${pag}`)
+    setPagina(pag)
+    window.scrollTo(0, 0)
+  }
+
+  useEffect(() => {
+    cargarVehiculos()
+    window.history.replaceState({ pagina: pagina }, '', `#${pagina}`)
+  }, [])
+
+  useEffect(() => {
+    if (pagina === 'panel') cargarReservas()
+  }, [pagina])
+
+  useEffect(() => {
+    const manejarAtras = (e) => {
+      const pag = e.state?.pagina || 'inicio'
+      setPagina(pag)
+      window.scrollTo(0, 0)
+    }
+    window.addEventListener('popstate', manejarAtras)
+    return () => window.removeEventListener('popstate', manejarAtras)
+  }, [])
 
   const cargarVehiculos = async () => {
     const res = await axios.get(`${API}/vehiculos`)
@@ -92,7 +117,7 @@ function App() {
     let resultado = vehiculos
     if (busqueda.tipo) resultado = resultado.filter(v => v.tipo.toLowerCase().includes(busqueda.tipo.toLowerCase()))
     setVehiculosFiltrados(resultado)
-    setPagina('vehiculos')
+    ir('vehiculos')
   }
 
   const login = async () => {
@@ -100,7 +125,7 @@ function App() {
       const res = await axios.post(`${API}/login/usuario`, { email: form.email, contrasena: form.contrasena })
       setToken(res.data.token); setTipousuario('usuario')
       localStorage.setItem('token', res.data.token); localStorage.setItem('tipousuario', 'usuario')
-      setMensaje('Login exitoso'); setPagina('vehiculos')
+      setMensaje('Login exitoso'); ir('vehiculos')
     } catch { setMensaje('Credenciales incorrectas') }
   }
 
@@ -109,7 +134,7 @@ function App() {
       const res = await axios.post(`${API}/login/propietario`, { email: form.email, contrasena: form.contrasena })
       setToken(res.data.token); setTipousuario('propietario'); setNombreUsuario(res.data.nombre)
       localStorage.setItem('token', res.data.token); localStorage.setItem('tipousuario', 'propietario'); localStorage.setItem('nombreUsuario', res.data.nombre)
-      setMensaje(`Bienvenido/a ${res.data.nombre}`); setPagina('panel')
+      setMensaje(`Bienvenido/a ${res.data.nombre}`); ir('panel')
     } catch { setMensaje('Credenciales incorrectas') }
   }
 
@@ -120,7 +145,7 @@ function App() {
         tipo_documento: form.tipo_documento, numero_documento: form.numero_documento,
         tipo_cuenta: 'cliente'
       })
-      setMensaje('¡Registro exitoso! Ahora inicia sesión'); setPagina('login')
+      setMensaje('¡Registro exitoso! Ahora inicia sesión'); ir('login')
     } catch { setMensaje('Error al registrarse. El email ya existe.') }
   }
 
@@ -150,7 +175,7 @@ function App() {
         }
       }
       setMensaje('¡Vehículo registrado con éxito! Ya puedes iniciar sesión.')
-      setPagina('login_propietario')
+      ir('login_propietario')
     } catch { setMensaje('Error al registrar. Verifica los datos.') }
   }
 
@@ -160,7 +185,7 @@ function App() {
         vehiculo_id: form.vehiculo_id, fecha_inicio: form.fecha_inicio, fecha_fin: form.fecha_fin
       }, { headers: { Authorization: `Bearer ${token}` } })
       setMensaje(`¡Reserva creada! Total: $${res.data.precio_total}`)
-      setPagina('vehiculos')
+      ir('vehiculos')
     } catch { setMensaje('Error al reservar. Mínimo 3 días.') }
   }
 
@@ -171,7 +196,10 @@ function App() {
     } catch { setMensaje('Error al actualizar') }
   }
 
-  const cerrarSesion = () => { setToken(''); setTipousuario(''); setNombreUsuario(''); localStorage.clear(); setPagina('inicio') }
+  const cerrarSesion = () => {
+    setToken(''); setTipousuario(''); setNombreUsuario(''); localStorage.clear(); ir('inicio')
+  }
+
   const inp = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
   const TarjetaVehiculo = ({ v, onReservar }) => {
@@ -208,18 +236,18 @@ function App() {
     <div style={{ fontFamily: "'Segoe UI', Arial, sans-serif", minHeight: '100vh', background: '#f8f9fa' }}>
 
       <nav style={{ background: 'white', padding: '0 40px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <h1 onClick={() => setPagina('inicio')} style={{ color: '#e74c3c', margin: 0, fontSize: 28, fontWeight: 800, cursor: 'pointer' }}>ALPHA</h1>
+        <h1 onClick={() => ir('inicio')} style={{ color: '#e74c3c', margin: 0, fontSize: 28, fontWeight: 800, cursor: 'pointer' }}>ALPHA</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {token ? (
             <>
-              {tipousuario === 'usuario' && <button onClick={() => setPagina('vehiculos')} style={navBtn}>Vehículos</button>}
-              {tipousuario === 'propietario' && <button onClick={() => setPagina('panel')} style={navBtn}>Mi panel</button>}
+              {tipousuario === 'usuario' && <button onClick={() => ir('vehiculos')} style={navBtn}>Vehículos</button>}
+              {tipousuario === 'propietario' && <button onClick={() => ir('panel')} style={navBtn}>Mi panel</button>}
               <button onClick={cerrarSesion} style={{ ...navBtn, background: '#e74c3c', color: 'white', border: 'none' }}>Salir</button>
             </>
           ) : (
             <>
-              <button onClick={() => setPagina('login')} style={navBtn}>Iniciar sesión</button>
-              <button onClick={() => { setTipoCuenta(''); setPagina('registro') }} style={{ ...navBtn, background: '#e74c3c', color: 'white', border: 'none' }}>Registrarse</button>
+              <button onClick={() => ir('login')} style={navBtn}>Iniciar sesión</button>
+              <button onClick={() => { setTipoCuenta(''); ir('registro') }} style={{ ...navBtn, background: '#e74c3c', color: 'white', border: 'none' }}>Registrarse</button>
             </>
           )}
         </div>
@@ -229,8 +257,7 @@ function App() {
 
       {pagina === 'inicio' && (
         <div>
-          {/* HERO */}
-          <div style={{ background: 'linear-gradient(135deg, #e8e8f0 0%, #16213e 50%, #0f3460 100%)', padding: '80px 40px', textAlign: 'center', color: 'white' }}>
+          <div style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', padding: '80px 40px', textAlign: 'center', color: 'white' }}>
             <h2 style={{ fontSize: 42, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.2 }}>Alquila el vehículo perfecto<br/>en El Salvador</h2>
             <p style={{ fontSize: 18, opacity: 0.8, margin: '0 0 40px' }}>Miles de opciones · Precios transparentes · Sin sorpresas</p>
             <div style={{ background: 'white', borderRadius: 16, padding: '24px 28px', maxWidth: 780, margin: '0 auto', display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -256,12 +283,11 @@ function App() {
             </div>
           </div>
 
-          {/* CATEGORIAS CON FOTOS REALES */}
           <div style={{ padding: '48px 40px', maxWidth: 1100, margin: '0 auto' }}>
             <h3 style={sectionTitle}>Explora por categoría</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
               {CATEGORIAS.map(c => (
-                <div key={c.tipo} onClick={() => { setBusqueda({...busqueda, tipo: c.tipo}); buscar() }} style={{ borderRadius: 12, overflow: 'hidden', cursor: 'pointer', border: '2px solid transparent', transition: 'all 0.2s', position: 'relative' }}
+                <div key={c.tipo} onClick={() => { setBusqueda({...busqueda, tipo: c.tipo}); buscar() }} style={{ borderRadius: 12, overflow: 'hidden', cursor: 'pointer', border: '2px solid transparent', transition: 'all 0.2s' }}
                   onMouseOver={e => { e.currentTarget.style.borderColor='#e74c3c'; e.currentTarget.style.transform='translateY(-3px)' }}
                   onMouseOut={e => { e.currentTarget.style.borderColor='transparent'; e.currentTarget.style.transform='translateY(0)' }}>
                   <img src={c.img} alt={c.label} style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }} />
@@ -274,20 +300,18 @@ function App() {
             </div>
           </div>
 
-          {/* VEHICULOS DISPONIBLES */}
           <div style={{ padding: '0 40px 48px', maxWidth: 1100, margin: '0 auto' }}>
             <h3 style={sectionTitle}>Vehículos disponibles</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
               {vehiculos.map(v => (
-                <TarjetaVehiculo key={v.id} v={v} onReservar={() => { if(!token){ setPagina('login'); return; } setForm({ vehiculo_id: v.id, precio: v.precio_por_dia }); setPagina('reservar') }} />
+                <TarjetaVehiculo key={v.id} v={v} onReservar={() => { if(!token){ ir('login'); return; } setForm({ vehiculo_id: v.id, precio: v.precio_por_dia }); ir('reservar') }} />
               ))}
             </div>
           </div>
 
-          {/* CONSEJOS */}
           <div style={{ background: '#fff', padding: '60px 40px' }}>
             <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-              <h3 style={{ ...sectionTitle, textAlign: 'center' }}>Antes de recibir tu vehículo:</h3>
+              <h3 style={{ ...sectionTitle, textAlign: 'center' }}>Recuerda:</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <div style={{ background: '#f8f9fa', borderRadius: 16, padding: 28, border: '1.5px solid #eee' }}>
                   <h4 style={{ margin: '0 0 20px', color: '#1a1a2e', fontSize: 17, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -321,7 +345,6 @@ function App() {
             </div>
           </div>
 
-          {/* ZONAS */}
           <div style={{ background: '#1a1a2e', padding: '60px 40px', color: 'white' }}>
             <h3 style={{ fontSize: 28, fontWeight: 800, textAlign: 'center', margin: '0 0 8px', color: 'white' }}>Estamos disponibles en todo El Salvador</h3>
             <p style={{ textAlign: 'center', opacity: 0.7, marginBottom: 40 }}>Selecciona tu zona para ver los departamentos</p>
@@ -355,7 +378,7 @@ function App() {
           <h2 style={{ fontSize: 26, fontWeight: 700, margin: '0 0 24px', color: '#1a1a2e' }}>Vehículos disponibles</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
             {vehiculosFiltrados.map(v => (
-              <TarjetaVehiculo key={v.id} v={v} onReservar={() => { if(!token){ setPagina('login'); return; } setForm({ vehiculo_id: v.id, precio: v.precio_por_dia }); setPagina('reservar') }} />
+              <TarjetaVehiculo key={v.id} v={v} onReservar={() => { if(!token){ ir('login'); return; } setForm({ vehiculo_id: v.id, precio: v.precio_por_dia }); ir('reservar') }} />
             ))}
           </div>
         </div>
@@ -367,7 +390,7 @@ function App() {
           <input name="email" placeholder="Correo electrónico" onChange={inp} style={inputStyle} />
           <input name="contrasena" type="password" placeholder="Contraseña" onChange={inp} style={inputStyle} />
           <button onClick={login} style={primaryBtn}>Entrar</button>
-          <p style={{ textAlign: 'center', marginTop: 16, fontSize: 14, color: '#666' }}>¿No tienes cuenta? <span onClick={() => { setTipoCuenta(''); setPagina('registro') }} style={{ color: '#e74c3c', cursor: 'pointer', fontWeight: 600 }}>Regístrate</span></p>
+          <p style={{ textAlign: 'center', marginTop: 16, fontSize: 14, color: '#666' }}>¿No tienes cuenta? <span onClick={() => { setTipoCuenta(''); ir('registro') }} style={{ color: '#e74c3c', cursor: 'pointer', fontWeight: 600 }}>Regístrate</span></p>
         </div>
       )}
 
@@ -580,7 +603,7 @@ function App() {
           <label style={labelStyle}>Fecha de fin</label>
           <input name="fecha_fin" type="date" onChange={inp} style={inputStyle} />
           <button onClick={reservar} style={primaryBtn}>Confirmar reserva</button>
-          <button onClick={() => setPagina('vehiculos')} style={{ ...primaryBtn, background: 'white', color: '#666', border: '1.5px solid #ddd', marginTop: 8 }}>Cancelar</button>
+          <button onClick={() => ir('vehiculos')} style={{ ...primaryBtn, background: 'white', color: '#666', border: '1.5px solid #ddd', marginTop: 8 }}>Cancelar</button>
         </div>
       )}
 
